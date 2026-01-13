@@ -67,8 +67,20 @@ defmodule LiveIsolatedComponent do
      all values.
   """
   defmacro live_isolated_component(component, opts \\ quote(do: %{})) do
+    # Handle map vs keyword list at compile time to avoid type inference warnings
+    opts_ast =
+      case opts do
+        {:%{}, _, _} ->
+          # It's a map literal - wrap in assigns keyword
+          quote do: [assigns: unquote(opts)]
+
+        _ ->
+          # It's a keyword list or variable - use as-is
+          opts
+      end
+
     quote do
-      opts = if is_map(unquote(opts)), do: [assigns: unquote(opts)], else: unquote(opts)
+      opts = unquote(opts_ast)
       test_pid = self()
 
       # We need to use agents because fns are not serializable.
