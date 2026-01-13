@@ -71,12 +71,22 @@ defmodule LiveIsolatedComponent do
     opts_ast =
       case opts do
         {:%{}, _, _} ->
-          # It's a map literal - wrap in assigns keyword
+          # Map literal - wrap at compile time (avoids Elixir 1.20 type warning)
           quote do: [assigns: unquote(opts)]
 
-        _ ->
-          # It's a keyword list or variable - use as-is
+        [{atom, _} | _] when is_atom(atom) ->
+          # Keyword list literal - use as-is at compile time
           opts
+
+        _ ->
+          # Variable - need runtime check
+          # Using pattern matching instead of is_map/1 avoids type inference warnings
+          quote do
+            case unquote(opts) do
+              %{} = map -> [assigns: map]
+              list when is_list(list) -> list
+            end
+          end
       end
 
     quote do

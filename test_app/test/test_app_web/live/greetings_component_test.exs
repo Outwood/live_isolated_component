@@ -18,6 +18,13 @@ defmodule TestAppWeb.Live.GreetingsComponentTest do
     assert_text(view, "Hello, Sergio")
   end
 
+  test "displays name (map variable)" do
+    assigns = %{name: "Sergio"}
+    {:ok, view, _html} = live_isolated_component(GreetingsComponent, assigns)
+
+    assert_text(view, "Hello, Sergio")
+  end
+
   test "name can be changed via live_assign/3" do
     {:ok, view, _html} = live_isolated_component(GreetingsComponent, assigns: %{name: "Sergio"})
 
